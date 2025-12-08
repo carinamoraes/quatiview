@@ -1,59 +1,63 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8">
-		<title>QuatiView</title>
-		<link rel="stylesheet" type="text/css" href="css/style.css">
-		<link rel="stylesheet" type="text/css" href="cm/lib/codemirror.css">
-		<link rel="stylesheet" type="text/css" href="cm/theme/ayu-mirage.css">
-		<link rel="stylesheet" type="text/css" href="cm/addon/scroll/simplescrollbars.css">
-		<link rel="icon" href="icon.png"/>
-		<script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
-		<script type="text/javascript" src="js/fa.js"></script>
-		<script type="text/javascript" src="cm/lib/codemirror.js"></script>
-		<script type="text/javascript" src="cm/mode/clike/clike.js"></script>
-		<script type="text/javascript" src="cm/addon/scroll/simplescrollbars.js"></script>
-		<script type="text/javascript" src="js/extensions.js"></script>
-		<script type="module" src="js/main.js"></script>
-	</head>
-	<body>
-		<div id="control-panel">
-			<div class="panel-button" button-id="upload" title="Upload">
-				<i class="fas fa-file-upload"></i>
-			</div>
-			<div class="panel-button" button-id="run" title="Run (Ctrl + Enter)">
-				<i class="fas fa-play"></i>
-			</div>
-			<div class="panel-button disabled" button-id="stop" title="Abort">
-				<i class="fas fa-ban"></i>
-			</div>
-			<div class="panel-button disabled" button-id="pause" title="Pause (Space)">
-				<i class="fas fa-pause-circle"></i>
-			</div>
-			<div class="panel-button disabled" button-id="unpause" title="Unpause (Space)">
-				<i class="fas fa-play-circle"></i>
-			</div>
-			<div class="panel-button disabled" button-id="next" title="Next line (Right)">
-				<i class="fas fa-chevron-circle-right"></i>
-			</div>
-			<div class="panel-speed">
-				<div class="title">Speed:</div>
-				<input type="range" min="0" max="1" step="any" value=".4">
-			</div>
-		</div>
-		<form spellcheck="false">
-			<div id="editor-section">
-				<textarea></textarea>
-			</div>
-		</form>
-		<form spellcheck="false">
-			<div id="terminal-section">
-				<textarea disabled="true"></textarea>
-				<input type="text" id="terminal-input">
-			</div>
-		</form>
-		<div id="mem-view-section">
-			<canvas></canvas>
-		</div>
-	</body>
-</html>
+<head>
+    <meta charset="utf-8" />
+    <title>QuatiView</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+    <link rel="stylesheet" type="text/css" href="cm/lib/codemirror.css" />
+    <link rel="stylesheet" type="text/css" href="cm/theme/ayu-mirage.css" />
+    <link rel="stylesheet" type="text/css" href="cm/addon/scroll/simplescrollbars.css" />
+    <link rel="icon" href="icon.png" />
+    <script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="js/fa.js"></script>
+    <script type="text/javascript" src="cm/lib/codemirror.js"></script>
+    <script type="text/javascript" src="cm/mode/clike/clike.js"></script>
+    <script type="text/javascript" src="cm/addon/scroll/simplescrollbars.js"></script>
+    <script type="text/javascript" src="js/extensions.js"></script>
+    <script type="module" src="js/main.js"></script>
+</head>
+<body>
+    <div id="control-panel">
+        <div class="panel-button" button-id="upload" title="Upload">
+            <i class="fas fa-file-upload"></i>
+            <label>Upload</label>
+        </div>
+        <div class="panel-button" button-id="build" title="Press Ctrl + Enter">
+            <i class="fas fa-play"></i>
+            <label>Build</label>
+        </div>
+        <div class="panel-button disabled" button-id="stop" title="Abort">
+            <i class="fas fa-ban"></i>
+            <label>Stop</label>
+        </div>
+        <div class="panel-button disabled" button-id="run" title="Press Space">
+            <i class="fas fa-play-circle"></i>
+            <label>Run</label>
+        </div>
+        <div class="panel-button disabled" button-id="pause" title="Press Space">
+            <i class="fas fa-pause-circle"></i>
+            <label>Pause</label>
+        </div>
+        <div class="panel-button disabled" button-id="next" title="Press Right">
+            <i class="fas fa-chevron-circle-right"></i>
+            <label>Next line</label>
+        </div>
+        <div class="panel-speed">
+            <div class="title">Speed:</div>
+            <input type="range" min="0" max="1" step="any" value=".4" />
+        </div>
+    </div>
+    <form spellcheck="false">
+        <div id="editor-section">
+            <textarea></textarea>
+        </div>
+    </form>
+    <form spellcheck="false">
+        <div id="terminal-section">
+            <textarea disabled="true"></textarea>
+            <input type="text" id="terminal-input" />
+        </div>
+    </form>
+    <div id="mem-view-section">
+        <canvas></canvas>
+    </div>
+</body>

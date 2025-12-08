@@ -2,7 +2,7 @@
 	font-family: monospace;
 }
 body {
-	--panel-height: 36px;
+	--panel-height: 40px;
 	--editor-width: 450px;
 	--terminal-height: 220px;
 	--spacing: 5px;
@@ -31,6 +31,11 @@ body {
 	margin-top: 10px;
 	margin-left: 10px;
 	cursor: pointer;
+    display: flex;
+	flex-direction: column;
+	gap: 2px;
+	align-items: center;
+	font-size: smaller;
 }
 #control-panel .panel-button.disabled {
 	opacity: 0.25;
