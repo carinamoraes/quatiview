@@ -43,7 +43,7 @@ body {
 }
 .panel-speed {
 	float: left;
-	margin-top: 8px;
+	margin-top: 10px;
 	margin-left: 10px;
 }
 .panel-speed div.title,
@@ -54,6 +54,21 @@ body {
 }
 .panel-speed div.title {
 	margin-bottom: 2px;
+}
+#control-panel .code-examples {
+    color: #fff;
+    display: flex;
+    flex-direction: row;
+    gap: var(--spacing);
+    float: right;
+	margin-top: 8px;
+	margin-right: 10px;
+}
+#control-panel .example-button {
+	background-color: #555;
+    border-radius: 4px;
+    padding: 5px;
+    cursor: pointer;
 }
 #editor-section {
 	position: absolute;
