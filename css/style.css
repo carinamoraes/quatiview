@@ -136,3 +136,53 @@ body {
 	overflow: hidden;
 	background-color: #222;
 }
+/** Welcome modal */
+#welcome-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,10,10,0.55);
+  z-index: 9999;
+}
+#welcome-modal .modal-box {
+  width: min(720px, 92%);
+  background: #0f1724;
+  color: #e6eef8;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  position: relative;
+}
+#welcome-modal .modal-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  border: none;
+  font-size: 1.6rem;
+  color: #aebfd6;
+  cursor: pointer;
+}
+#welcome-modal .modal-footer {
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing);
+}
+#welcome-modal .modal-checkbox {
+    display:flex;
+    flex-direction: row;
+    gap: var(--spacing);
+}
+#welcome-modal .btn-primary {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  background: #2563eb;
+  color: #fff;
+}
+#modal-toggle:checked + #welcome-modal {
+  display: none;
+}

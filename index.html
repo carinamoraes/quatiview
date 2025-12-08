@@ -16,6 +16,23 @@
     <script type="module" src="js/main.js"></script>
 </head>
 <body>
+    <input type="checkbox" id="modal-toggle" hidden />
+    <div id="welcome-modal">
+        <div class="modal-box">
+            <label for="modal-toggle" class="modal-close">&times;</label>
+
+            <h2>Bem-vindo ao QuatiView!</h2>
+            <p>TODO: Incluir instruções e link para o manual</p>
+
+            <div class="modal-footer">
+                <label for="modal-toggle" id="modal-ok" class="btn-primary">Fechar</label>
+                <div class="modal-checkbox">
+                    <input type="checkbox" value="orange" />
+                    <label for="orange">Não mostrar novamente</label>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="control-panel">
         <div class="panel-button" button-id="upload" title="Upload">
             <i class="fas fa-file-upload"></i>
