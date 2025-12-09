@@ -201,6 +201,22 @@ const bindButton = (name, action) => {
     });
 };
 
+const show_welcome_modal = 'show_welcome_modal';
+const bindWelcomeModal = () => {
+    const dontShow = document.getElementById('welcome-dont-show');
+    dontShow?.addEventListener('change', (e) => {
+        if (e.target.checked) localStorage.setItem(show_welcome_modal, 'false');
+        else localStorage.setItem(show_welcome_modal, 'true');
+    });
+};
+
+function showWelcomeModal() {
+    if (localStorage.getItem(show_welcome_modal) !== 'false') {
+        const toggle = document.getElementById('modal-toggle');
+        if (toggle) toggle.checked = true;
+    }
+}
+
 const commandKeyPressed = (e) => e.ctrlKey || e.shiftKey || e.altKey;
 
 export const init = () => {
@@ -220,6 +236,8 @@ export const init = () => {
     bindSpeedInput();
     bindButton('linked-list-example', linkedList);
     bindButton('bin-tree-example', binaryTree);
+    showWelcomeModal();
+    bindWelcomeModal();
     $(window).on('keydown', (e) => {
         if (e.ctrlKey && (e.key === '\n' || /^enter$/i.test(e.key))) {
             e.preventDefault();

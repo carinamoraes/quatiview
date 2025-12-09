@@ -175,7 +175,7 @@ body {
     flex-direction: row;
     gap: var(--spacing);
 }
-#welcome-modal .btn-primary {
+#welcome-modal .button-close-modal {
   padding: 8px 14px;
   border-radius: 8px;
   border: none;
@@ -183,6 +183,6 @@ body {
   background: #2563eb;
   color: #fff;
 }
-#modal-toggle:checked + #welcome-modal {
+#modal-toggle:not(:checked) + #welcome-modal {
   display: none;
 }
