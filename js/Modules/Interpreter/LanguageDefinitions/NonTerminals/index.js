@@ -1,6 +1,7 @@
 import './Parsers/arg-call.js';
 import './Parsers/arg-item.js';
 import './Parsers/arg-list.js';
+import './Parsers/array-init.js';
 import './Parsers/break.js';
 import './Parsers/const.js';
 import './Parsers/char-const.js';

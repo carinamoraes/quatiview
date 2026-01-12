@@ -16,6 +16,16 @@ new NonTerminal({
         if (data.returnType != null) {
             return data;
         }
-        return data;
+
+        // Preservar informação de array
+        const result = { ...data };
+        if (data.isArray) {
+            result.isArray = true;
+            result.arraySize = data.arraySize;
+        }
+
+        console.log('array - ', data.isArray);
+
+        return result;
     },
 });

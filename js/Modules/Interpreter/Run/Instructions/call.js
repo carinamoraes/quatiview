@@ -4,7 +4,7 @@ import solve from './Support/solve.js';
 import { RuntimeError } from '../../../errors.js';
 
 export default async ({ ctx, args, fn, structAllocation }) => {
-    const callstack = ctx.callstack = ctx.callstack ?? [];
+    const callstack = (ctx.callstack = ctx.callstack ?? []);
     callstack.push(fn.name);
     const values = [];
     for (let arg of args) {
@@ -12,10 +12,12 @@ export default async ({ ctx, args, fn, structAllocation }) => {
         values.push(value);
     }
     for (let item of fn.vars) {
-        const addr = Net.memory.allocate(item.size);
-        item.addr.push(addr);
+        if (!item.isArray || item.addr.length === 0) {
+            const addr = Net.memory.allocate(item.size);
+            item.addr.push(addr);
+        }
     }
-    for (let i=0; i<args.length; ++i) {
+    for (let i = 0; i < args.length; ++i) {
         await Run({
             instruction: 'assign',
             src: values[i],
@@ -38,9 +40,7 @@ export default async ({ ctx, args, fn, structAllocation }) => {
     const { returnValue } = ctx;
     const { returnType } = fn;
     if (returnType !== 'void' && returnValue == null) {
-        throw new RuntimeError(
-            `execution of function '${fn.name}' did not return any value`
-        );
+        throw new RuntimeError(`execution of function '${fn.name}' did not return any value`);
     }
     ctx.returnValue = null;
     return returnValue;

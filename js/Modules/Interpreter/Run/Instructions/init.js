@@ -21,4 +21,14 @@ export default async ({ ctx }) => {
         Net.memory.free(item.value);
         item.value = null;
     }
+
+    // Liberar variáveis globais (incluindo arrays)
+    if (ctx.globalVars) {
+        for (let item of ctx.globalVars) {
+            if (item.addr && item.addr.length > 0) {
+                Net.memory.free(item.addr[0]);
+            }
+        }
+        ctx.globalVars = [];
+    }
 };
