@@ -1,5 +1,4 @@
 import NonTerminal from '../../../Model/NonTerminal.js';
-import Net from '../../../../Net.js';
 import { CompilationError } from '../../../../errors.js';
 
 new NonTerminal({
@@ -22,12 +21,10 @@ new NonTerminal({
 
             let type, size;
 
-            // Se é array
+            // Declaração de array
             if (arraySize !== null) {
-                // Calcular tamanho do array de forma síncrona
+                // Tamanho do array deve ser uma constante inteira conhecida em tempo de compilação
                 const sizeInstr = ctx.compile(arraySize);
-
-                // Esperamos que o tamanho seja uma constante inteira já resolvida
                 if (sizeInstr == null || typeof sizeInstr.value !== 'number') {
                     throw new CompilationError(
                         `array size must be a constant integer expression`,
@@ -47,16 +44,16 @@ new NonTerminal({
                 const elementSize = ctx.getTypeSize(elementType, item.startsAt);
                 size = n * elementSize;
 
-                // Tipo interno: ponteiro para o elemento
+                // Tipo da variável é ponteiro para o elemento
                 type = elementType + '*';
             } else {
-                // Variável normal ou ponteiro
+                // Variável simples ou ponteiro
                 type = decType + '*'.repeat(pointerCount);
                 size = ctx.getTypeSize(type, item.startsAt);
             }
 
             if (struct) {
-                // Dentro de struct: apenas registrar
+                // Membro de struct: apenas registrar metadados
                 struct.members[name] = {
                     name,
                     size,
@@ -65,7 +62,7 @@ new NonTerminal({
                     arraySize: arraySize ? { node: arraySize } : null,
                 };
             } else {
-                // Variável local ou global
+                // Variável local ou global: apenas registrar, sem alocação aqui
                 const data = {
                     name,
                     type,
@@ -75,15 +72,11 @@ new NonTerminal({
                     isArray: arraySize !== null,
                 };
 
-                // ALOCAR MEMÓRIA IMEDIATAMENTE (como malloc)
-                const addr = Net.memory.allocate(size);
-                data.addr.push(addr);
-
                 ctx.local.set(name, data);
                 if (fn) {
                     fn.vars.push(data);
                 } else {
-                    // Variável global: precisa ser liberada no final
+                    // Variável global: marcar para alocação/liberação em tempo de execução
                     if (!ctx.globalVars) ctx.globalVars = [];
                     ctx.globalVars.push(data);
                 }

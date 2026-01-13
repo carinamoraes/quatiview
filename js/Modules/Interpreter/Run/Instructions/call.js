@@ -11,11 +11,11 @@ export default async ({ ctx, args, fn, structAllocation }) => {
         const value = await solve(arg);
         values.push(value);
     }
+    // Alocar espaço para todas as variáveis locais da função (incluindo arrays)
+    console.log('fn vars', fn.vars);
     for (let item of fn.vars) {
-        if (!item.isArray || item.addr.length === 0) {
-            const addr = Net.memory.allocate(item.size);
-            item.addr.push(addr);
-        }
+        const addr = Net.memory.allocate(item.size);
+        item.addr.push(addr);
     }
     for (let i = 0; i < args.length; ++i) {
         await Run({

@@ -5,11 +5,22 @@ export default async ({ ctx }) => {
     window.ctx = ctx;
     const main = ctx.global.get('main');
     const { consts } = ctx;
+
+	// Alocar memória para constantes
     for (let item of consts) {
         const addr = Net.memory.allocate(item.bytes.length);
         item.value = addr;
         item.bytes.forEach((byte, i) => Net.memory.write(addr + i, byte));
     }
+
+	// Alocar memória para variáveis globais (incluindo arrays)
+	if (ctx.globalVars) {
+		for (let item of ctx.globalVars) {
+			const addr = Net.memory.allocate(item.size);
+			item.addr.push(addr);
+		}
+	}
+
     await Run({
         instruction: 'call',
         fn: main,
@@ -17,17 +28,20 @@ export default async ({ ctx }) => {
         type: main.returnType,
         ctx,
     });
+
+	// Liberar memória de constantes
     for (let item of consts) {
         Net.memory.free(item.value);
         item.value = null;
     }
 
-    // Liberar variáveis globais (incluindo arrays)
+	// Liberar variáveis globais (incluindo arrays)
     if (ctx.globalVars) {
         for (let item of ctx.globalVars) {
-            if (item.addr && item.addr.length > 0) {
-                Net.memory.free(item.addr[0]);
-            }
+			if (item.addr && item.addr.length > 0) {
+				const addr = item.addr.pop();
+				Net.memory.free(addr);
+			}
         }
         ctx.globalVars = [];
     }
