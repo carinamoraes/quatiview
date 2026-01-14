@@ -12,7 +12,6 @@ export default async ({ ctx, args, fn, structAllocation }) => {
         values.push(value);
     }
     // Alocar espaço para todas as variáveis locais da função (incluindo arrays)
-    console.log('fn vars', fn.vars);
     for (let item of fn.vars) {
         const addr = Net.memory.allocate(item.size);
         item.addr.push(addr);

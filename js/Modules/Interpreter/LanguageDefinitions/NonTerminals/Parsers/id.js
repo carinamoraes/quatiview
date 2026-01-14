@@ -24,8 +24,6 @@ new NonTerminal({
             result.arraySize = data.arraySize;
         }
 
-        console.log('array - ', data.isArray);
-
         return result;
     },
 });

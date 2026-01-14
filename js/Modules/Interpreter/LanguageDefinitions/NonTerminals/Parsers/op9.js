@@ -19,7 +19,6 @@ new NonTerminal({
             right = ctx.parse('op9');
         }
 
-        console.log('parse --- ', left.name, right.name);
         return { left, right };
     },
     compile: (ctx, node) => {
