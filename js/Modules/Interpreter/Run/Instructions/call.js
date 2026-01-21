@@ -15,6 +15,22 @@ export default async ({ ctx, args, fn, structAllocation }) => {
     for (let item of fn.vars) {
         const addr = Net.memory.allocate(item.size);
         item.addr.push(addr);
+        
+        // Se é array, registrar no MemViewer
+        if (item.isArray && item.elementType) {
+            // Calcular tamanho do array
+            const sizeInstr = await solve(ctx.compile(item.arraySize.node));
+            const length = sizeInstr.value;
+            const viewName = `array_${item.elementType}`;
+            
+            // Registrar tipo se não existir
+            if (!Net.memViewer.hasTemplate(viewName)) {
+                Net.memViewer.addArrayType(viewName, item.elementType);
+            }
+            
+            // Adicionar instância
+            Net.memViewer.addArrayInstance(viewName, addr, length);
+        }
     }
     for (let i = 0; i < args.length; ++i) {
         await Run({

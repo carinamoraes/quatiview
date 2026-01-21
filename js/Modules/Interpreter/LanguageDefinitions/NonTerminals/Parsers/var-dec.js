@@ -64,6 +64,7 @@ new NonTerminal({
                     addr: [],
                     arraySize: arraySize ? { node: arraySize } : null,
                     isArray: arraySize !== null,
+                    elementType: arraySize !== null ? decType : null, // Armazenar tipo do elemento para arrays
                 };
 
                 ctx.local.set(name, data);

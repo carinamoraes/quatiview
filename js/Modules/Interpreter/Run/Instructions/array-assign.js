@@ -1,5 +1,6 @@
 import Net from '../../../Net.js';
 import solve from './Support/solve.js';
+import { RuntimeError } from '../../../errors.js';
 
 export default async ({ ctx, dst, values }) => {
     if (!dst.isArray || !dst.addr || dst.addr.length === 0) {

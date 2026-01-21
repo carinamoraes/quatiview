@@ -452,6 +452,10 @@ export const getTemplates = () => {
     return Object.values(templates);
 };
 
+export const hasTemplate = (name) => {
+    return templates[name] !== undefined;
+};
+
 export const init = () => {
     canvas = $('canvas');
     ctx = canvas[0].getContext('2d');
@@ -516,9 +520,19 @@ class ArrayTemplate {
         return `${this.elementType}[]`;
     }
 
+    updateSize(length) {
+        this.sx = length * cellSize;
+        this.sy = cellSize;
+    }
+
     render(instance) {
         const { addr, x: x0, y: y0, length } = instance;
         const { elementType, elementSize } = this;
+
+        // Atualizar tamanho do template se necessário
+        if (this.sx === 0) {
+            this.updateSize(length);
+        }
 
         // Desenhar container
         ctx.fillStyle = color.instance;
@@ -560,11 +574,53 @@ class ArrayTemplate {
 
 class ArrayInstance {
     constructor(addr, template, length) {
+        this.templateName = template.name;
         this.addr = addr;
         this.template = template;
         this.length = length;
-        this.x = 0;
-        this.y = 0;
+        this.real = getNewPosition(template);
+        this.animated = {
+            x: 0,
+            y: 0,
+        };
+        // Arrays não têm ponteiros, então não precisam de gData real
+        // Mas precisamos de um objeto vazio para compatibilidade
+        this.graphData = [{ clear: () => {}, equals: () => true }, { clear: () => {}, equals: () => true }];
+    }
+    get x() {
+        return this.real.x + this.animated.x;
+    }
+    get y() {
+        return this.real.y + this.animated.y;
+    }
+    get gData() {
+        return this.graphData[bitTic];
+    }
+    get prevGData() {
+        return this.graphData[bitTic ^ 1];
+    }
+    render() {
+        const { template, x, y, addr } = this;
+        template.render(this);
+        ctx.textBaseline = 'bottom';
+        ctx.textAlign = 'left';
+        ctx.fillStyle = color.addr;
+        ctx.font = `${addrFontSize}px monospace`;
+        ctx.fillText(addr, x, y - addrMargin);
+    }
+    moveTo(x, y) {
+        const { real, animated } = this;
+        const dif_x = x - real.x;
+        const dif_y = y - real.y;
+        if (dif_x === 0 && dif_y === 0) {
+            return;
+        }
+        real.x = x;
+        real.y = y;
+        animate((t) => {
+            animated.x = dif_x * t - dif_x;
+            animated.y = dif_y * t - dif_y;
+        });
     }
 }
 
@@ -581,6 +637,8 @@ export const addArrayInstance = (name, addr, length) => {
     if (template === undefined || !(template instanceof ArrayTemplate)) {
         return;
     }
+    // Atualizar tamanho do template baseado no length
+    template.updateSize(length);
     const instance = new ArrayInstance(addr, template, length);
     instances.push(instance);
     byTemplateName[template.name].push(instance);
