@@ -26,18 +26,12 @@ new NonTerminal({
                 // Tamanho do array deve ser uma constante inteira conhecida em tempo de compilação
                 const sizeInstr = ctx.compile(arraySize);
                 if (sizeInstr == null || typeof sizeInstr.value !== 'number') {
-                    throw new CompilationError(
-                        `array size must be a constant integer expression`,
-                        arraySize.startsAt
-                    );
+                    throw new CompilationError(`array size must be a constant integer expression`, arraySize.startsAt);
                 }
 
                 const n = sizeInstr.value;
                 if (n <= 0) {
-                    throw new CompilationError(
-                        `array size must be positive, got ${n}`,
-                        arraySize.startsAt
-                    );
+                    throw new CompilationError(`array size must be positive, got ${n}`, arraySize.startsAt);
                 }
 
                 const elementType = decType;
