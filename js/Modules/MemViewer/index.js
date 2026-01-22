@@ -270,7 +270,7 @@ class Instance {
         ctx.textAlign = 'left';
         ctx.fillStyle = color.addr;
         ctx.font = `${addrFontSize}px monospace`;
-        ctx.fillText(addr, x, y - addrMargin);
+        ctx.fillText(addr, x, y - (addrMargin + 10));
     }
     moveTo(x, y) {
         const { real, animated } = this;
@@ -526,7 +526,7 @@ class ArrayTemplate {
     }
 
     render(instance) {
-        const { addr, x: x0, y: y0, length } = instance;
+        const { addr, x: x0, y: y0, length, values } = instance;
         const { elementType, elementSize } = this;
 
         // Atualizar tamanho do template se necessário
@@ -548,26 +548,29 @@ class ArrayTemplate {
             const y = y0;
             const elementAddr = addr + i * elementSize;
 
-            // Ler valor
+            // Ler valor e atualizar cache se válido
             const value =
                 elementType === 'int' ? Net.memory.readWordSafe(elementAddr) : Net.memory.readSafe(elementAddr);
+            if (value !== null) {
+                values[i] = value;
+            }
 
             // Desenhar célula
             const { text, bg } = color[elementType] ?? color.def;
             drawBlock(x + cellPadding, y + cellPadding, cellSize - dblCellPadding, cellSize - dblCellPadding, bg);
 
-            // Desenhar valor
-            if (value !== null) {
+            // Desenhar valor (usando cache para persistência)
+            if (values[i] !== null) {
                 ctx.fillStyle = text;
                 ctx.font = `bold ${fontSize}px monospace`;
-                ctx.fillText(String(value), x + cellSize * 0.5, y + cellSize * 0.5);
+                ctx.fillText(String(values[i]), x + cellSize * 0.5, y + cellSize * 0.5);
             }
 
             // Desenhar índice
             ctx.fillStyle = color.addr;
             ctx.font = `${addrFontSize}px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText(`[${i}]`, x + cellSize * 0.5, y - addrMargin);
+            ctx.fillText(`[${i}]`, x + cellSize * 0.5, y - 7);
         }
     }
 }
@@ -583,9 +586,10 @@ class ArrayInstance {
             x: 0,
             y: 0,
         };
-        // Arrays não têm ponteiros, então não precisam de gData real
-        // Mas precisamos de um objeto vazio para compatibilidade
-        this.graphData = [{ clear: () => {}, equals: () => true }, { clear: () => {}, equals: () => true }];
+        // Cache para armazenar os valores lidos, evitando que "pisquem" se a leitura falhar temporariamente
+        this.values = new Array(length).fill(null);
+        // Arrays não têm ponteiros, então gData com parent null e children vazios
+        this.graphData = [new GraphData(this), new GraphData(this)];
     }
     get x() {
         return this.real.x + this.animated.x;
@@ -606,7 +610,7 @@ class ArrayInstance {
         ctx.textAlign = 'left';
         ctx.fillStyle = color.addr;
         ctx.font = `${addrFontSize}px monospace`;
-        ctx.fillText(addr, x, y - addrMargin);
+        ctx.fillText(addr, x, y - 12);
     }
     moveTo(x, y) {
         const { real, animated } = this;
