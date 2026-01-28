@@ -1,6 +1,7 @@
 import Net from '../Net.js';
 import sortBinTree from './sorting/sortBinTree.js';
 import sortList from './sorting/sortList.js';
+import { bubbleSort, abortAnimation, isAnimationRunning, resetSortingState } from './sorting/sortArray.js';
 
 let canvas = null;
 let ctx = null;
@@ -32,6 +33,19 @@ const color = {
     ptrLine: '#fff',
     addr: '#ccc',
     instance: '#aaa',
+    // Cores para animação de bubble sort
+    comparing: {
+        bg: '#f90',
+        text: '#fff',
+    },
+    sorted: {
+        bg: '#0a5',
+        text: '#fff',
+    },
+    swapping: {
+        bg: '#e33',
+        text: '#fff',
+    },
 };
 
 let bitTic = 0;
@@ -270,7 +284,7 @@ class Instance {
         ctx.textAlign = 'left';
         ctx.fillStyle = color.addr;
         ctx.font = `${addrFontSize}px monospace`;
-        ctx.fillText(addr, x, y - (addrMargin + 10));
+        ctx.fillText(addr, x, y - addrMargin);
     }
     moveTo(x, y) {
         const { real, animated } = this;
@@ -525,8 +539,60 @@ class ArrayTemplate {
         this.sy = cellSize;
     }
 
+    /**
+     * Determina a cor de um elemento baseado no estado da animação
+     */
+    getElementColor(instance, index, elementType) {
+        const { compareHighlight, swapAnimation, sortingState } = instance;
+
+        // Elemento sendo trocado (animação de swap ativa)
+        if (swapAnimation && swapAnimation.active) {
+            if (index === swapAnimation.indexA || index === swapAnimation.indexB) {
+                return color.swapping;
+            }
+        }
+
+        // Elemento sendo comparado
+        if (compareHighlight) {
+            if (index === compareHighlight.indexA || index === compareHighlight.indexB) {
+                return color.comparing;
+            }
+        }
+
+        // Elemento já ordenado
+        if (sortingState && sortingState.sorted && sortingState.sorted.includes(index)) {
+            return color.sorted;
+        }
+
+        // Cor padrão
+        return color[elementType] ?? color.def;
+    }
+
+    /**
+     * Calcula o offset X para animação de swap
+     */
+    getSwapOffset(instance, index) {
+        const { swapAnimation } = instance;
+        if (!swapAnimation || !swapAnimation.active) {
+            return 0;
+        }
+
+        const { indexA, indexB, progress } = swapAnimation;
+        const distance = (indexB - indexA) * cellSize;
+
+        if (index === indexA) {
+            // Elemento A move para direita
+            return distance * progress;
+        } else if (index === indexB) {
+            // Elemento B move para esquerda
+            return -distance * progress;
+        }
+
+        return 0;
+    }
+
     render(instance) {
-        const { addr, x: x0, y: y0, length, values } = instance;
+        const { addr, x: x0, y: y0, length, values, swapAnimation } = instance;
         const { elementType, elementSize } = this;
 
         // Atualizar tamanho do template se necessário
@@ -543,34 +609,81 @@ class ArrayTemplate {
         // Desenhar cada elemento
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+
+        // Primeiro, desenhar todos os elementos que NÃO estão sendo trocados
+        for (let i = 0; i < length; i++) {
+            // Pular elementos em animação de swap (serão desenhados depois, por cima)
+            if (swapAnimation && swapAnimation.active) {
+                if (i === swapAnimation.indexA || i === swapAnimation.indexB) {
+                    continue;
+                }
+            }
+            this.renderElement(instance, i, x0, y0, elementType, elementSize, addr);
+        }
+
+        // Depois, desenhar elementos em animação de swap (por cima)
+        if (swapAnimation && swapAnimation.active) {
+            this.renderElement(instance, swapAnimation.indexA, x0, y0, elementType, elementSize, addr);
+            this.renderElement(instance, swapAnimation.indexB, x0, y0, elementType, elementSize, addr);
+        }
+
+        // Desenhar índices
+        ctx.fillStyle = color.addr;
+        ctx.font = `${addrFontSize}px monospace`;
+        ctx.textAlign = 'center';
         for (let i = 0; i < length; i++) {
             const x = x0 + i * cellSize;
-            const y = y0;
-            const elementAddr = addr + i * elementSize;
+            ctx.fillText(String(i), x + cellSize * 0.5, y0 - 7);
+        }
+    }
 
-            // Ler valor e atualizar cache se válido
+    /**
+     * Renderiza um único elemento do array
+     */
+    renderElement(instance, i, x0, y0, elementType, elementSize, addr) {
+        const { values } = instance;
+
+        // Calcular posição com offset de animação
+        const swapOffset = this.getSwapOffset(instance, i);
+        const x = x0 + i * cellSize + swapOffset;
+        const y = y0;
+        const elementAddr = addr + i * elementSize;
+
+        // Ler valor e atualizar cache se válido (apenas se não estiver em animação de swap)
+        if (!instance.swapAnimation || !instance.swapAnimation.active) {
             const value =
                 elementType === 'int' ? Net.memory.readWordSafe(elementAddr) : Net.memory.readSafe(elementAddr);
             if (value !== null) {
                 values[i] = value;
             }
+        }
 
-            // Desenhar célula
-            const { text, bg } = color[elementType] ?? color.def;
-            drawBlock(x + cellPadding, y + cellPadding, cellSize - dblCellPadding, cellSize - dblCellPadding, bg);
+        // Obter cor baseada no estado
+        const { text, bg } = this.getElementColor(instance, i, elementType);
 
-            // Desenhar valor (usando cache para persistência)
-            if (values[i] !== null) {
-                ctx.fillStyle = text;
-                ctx.font = `bold ${fontSize}px monospace`;
-                ctx.fillText(String(values[i]), x + cellSize * 0.5, y + cellSize * 0.5);
+        // Desenhar célula com possível sombra para elementos em movimento
+        if (instance.swapAnimation && instance.swapAnimation.active) {
+            if (i === instance.swapAnimation.indexA || i === instance.swapAnimation.indexB) {
+                // Sombra para elementos em movimento
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(
+                    x + cellPadding + 2,
+                    y + cellPadding + 2,
+                    cellSize - dblCellPadding,
+                    cellSize - dblCellPadding,
+                );
             }
+        }
 
-            // Desenhar índice
-            ctx.fillStyle = color.addr;
-            ctx.font = `${addrFontSize}px monospace`;
+        drawBlock(x + cellPadding, y + cellPadding, cellSize - dblCellPadding, cellSize - dblCellPadding, bg);
+
+        // Desenhar valor (usando cache para persistência)
+        if (values[i] !== null) {
+            ctx.fillStyle = text;
+            ctx.font = `bold ${fontSize}px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText(`[${i}]`, x + cellSize * 0.5, y - 7);
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(values[i]), x + cellSize * 0.5, y + cellSize * 0.5);
         }
     }
 }
@@ -590,6 +703,10 @@ class ArrayInstance {
         this.values = new Array(length).fill(null);
         // Arrays não têm ponteiros, então gData com parent null e children vazios
         this.graphData = [new GraphData(this), new GraphData(this)];
+        // Campos para animação de sorting
+        this.swapAnimation = null;
+        this.compareHighlight = null;
+        this.sortingState = null;
     }
     get x() {
         return this.real.x + this.animated.x;
@@ -648,4 +765,56 @@ export const addArrayInstance = (name, addr, length) => {
     byTemplateName[template.name].push(instance);
     addrMap[addr] = instance;
     organizeFlag = true;
+};
+
+/**
+ * Obtém todas as instâncias de array
+ */
+export const getArrayInstances = () => {
+    return instances.filter((inst) => inst.template instanceof ArrayTemplate);
+};
+
+/**
+ * Executa bubble sort em uma instância de array específica
+ * @param {ArrayInstance} instance - Instância do array
+ * @param {Function} onComplete - Callback opcional chamado ao finalizar
+ */
+export const runBubbleSort = async (instance, onComplete = null) => {
+    if (!(instance.template instanceof ArrayTemplate)) {
+        console.warn('A instância fornecida não é um array');
+        return;
+    }
+    await bubbleSort(instance, onComplete);
+};
+
+/**
+ * Executa bubble sort em todos os arrays
+ * @param {Function} onComplete - Callback opcional chamado ao finalizar
+ */
+export const runBubbleSortAll = async (onComplete = null) => {
+    const arrayInstances = getArrayInstances();
+    for (const instance of arrayInstances) {
+        await bubbleSort(instance);
+    }
+    if (onComplete) {
+        onComplete();
+    }
+};
+
+/**
+ * Verifica se há animação de sorting em andamento
+ */
+export const isSortingAnimationRunning = () => isAnimationRunning();
+
+/**
+ * Aborta a animação de sorting em andamento
+ */
+export const abortSortingAnimation = () => {
+    abortAnimation();
+    // Limpar estado de todas as instâncias
+    for (const instance of instances) {
+        if (instance.template instanceof ArrayTemplate) {
+            resetSortingState(instance);
+        }
+    }
 };

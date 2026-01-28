@@ -29,7 +29,7 @@ const createInputFile = () => {
 		<div style="display:none">
 			<input type="file" id="upload" accept=".c"/>
 		</div>
-	`.trim()
+	`.trim(),
     );
     const inputFile = $('#upload');
     bindInputFile(inputFile);
@@ -119,6 +119,8 @@ const handleEnd = () => {
     button.run.addClass('disabled');
     button.pause.addClass('disabled');
     button.next.addClass('disabled');
+    // Habilitar botão de bubble sort se houver arrays
+    enableBubbleSortButton();
 };
 
 const handleStart = () => {
@@ -129,6 +131,8 @@ const handleStart = () => {
     button.run.removeClass('disabled');
     button.next.removeClass('disabled');
     Net.editor.lock();
+    // Desabilitar botão de bubble sort durante execução
+    disableBubbleSortButton();
 };
 
 const run = async () => {
@@ -192,6 +196,37 @@ const binaryTree = () => {
     getCodeSample('../../samples/bin_tree.c');
 };
 
+const arrayExample = () => {
+    getCodeSample('../../samples/bubble_sort.c');
+};
+
+const bubbleSortArray = async () => {
+    const arrayInstances = Net.memViewer.getArrayInstances();
+    if (arrayInstances.length === 0) {
+        Net.terminal.writeln('\nNenhum array encontrado para ordenar');
+        return;
+    }
+
+    button['bubble-sort'].addClass('disabled');
+    Net.terminal.writeln('\nIniciando Bubble Sort...');
+
+    await Net.memViewer.runBubbleSortAll(() => {
+        Net.terminal.writeln('Bubble Sort concluído!');
+        enableBubbleSortButton();
+    });
+};
+
+const enableBubbleSortButton = () => {
+    const arrayInstances = Net.memViewer.getArrayInstances();
+    if (arrayInstances.length > 0 && !Net.memViewer.isSortingAnimationRunning()) {
+        button['bubble-sort'].removeClass('disabled');
+    }
+};
+
+const disableBubbleSortButton = () => {
+    button['bubble-sort'].addClass('disabled');
+};
+
 const bindButton = (name, action) => {
     button[name].on('click', function () {
         if ($(this).hasClass('disabled')) {
@@ -236,6 +271,8 @@ export const init = () => {
     bindSpeedInput();
     bindButton('linked-list-example', linkedList);
     bindButton('bin-tree-example', binaryTree);
+    bindButton('array-example', arrayExample);
+    bindButton('bubble-sort', bubbleSortArray);
     showWelcomeModal();
     bindWelcomeModal();
     $(window).on('keydown', (e) => {

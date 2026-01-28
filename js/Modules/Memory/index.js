@@ -125,4 +125,12 @@ export const readWordSafe = (addr, word) => {
 	return res;
 };
 
+export const readSafe = (addr) => {
+	const byte = bytes[addr];
+	if (byte === undefined || byte === UNINITIALIZED_BYTE) {
+		return null;
+	}
+	return byte;
+};
+
 clear();
