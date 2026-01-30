@@ -5,7 +5,6 @@ int main()
 {
     int v[8];
 
-    // Inicializar array com valores desordenados
     v[0] = 64;
     v[1] = 34;
     v[2] = 25;

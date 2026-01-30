@@ -70,26 +70,6 @@ body {
     padding: 5px;
     cursor: pointer;
 }
-#control-panel .sorting-controls {
-    display: flex;
-    flex-direction: row;
-    gap: var(--spacing);
-    float: right;
-    margin-top: 0;
-    margin-right: 10px;
-    padding: 0 10px;
-    border-left: 1px solid #888;
-}
-#control-panel .sorting-controls .panel-button {
-    margin-top: 10px;
-    margin-left: 0;
-}
-#control-panel .sorting-controls .panel-button i {
-    color: #2a6;
-}
-#control-panel .sorting-controls .panel-button.disabled i {
-    color: inherit;
-}
 #editor-section {
 	position: absolute;
 	left: var(--spacing);

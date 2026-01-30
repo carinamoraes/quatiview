@@ -106,6 +106,9 @@ const stop = () => {
     if (running) {
         Net.execution.abort();
     }
+    if (Net.memViewer.isSortingAnimationRunning()) {
+        Net.memViewer.abortSortingAnimation();
+    }
     Net.terminal.writeln('\nExecution aborted');
     handleEnd();
 };
@@ -208,11 +211,21 @@ const bubbleSortArray = async () => {
     }
 
     button['bubble-sort'].addClass('disabled');
+    Net.editor.lock();
+    button.build.addClass('disabled');
+    button.stop.removeClass('disabled');
     Net.terminal.writeln('\nIniciando Bubble Sort...');
 
     await Net.memViewer.runBubbleSortAll(() => {
-        Net.terminal.writeln('Bubble Sort concluído!');
+        if (Net.memViewer.isSortingAnimationAborted()) {
+            Net.terminal.writeln('Bubble Sort interrompido!');
+        } else {
+            Net.terminal.writeln('Bubble Sort concluído!');
+        }
         enableBubbleSortButton();
+        button.build.removeClass('disabled');
+        button.stop.addClass('disabled');
+        Net.editor.unlock();
     });
 };
 

@@ -1,103 +1,50 @@
-int read_int() {
-	int c, x;
-	x = 0;
-	while((c = getchar()) != '\n' && c != ' ') {
-		x = x*10;
-		x = x + c - '0';
-	}
-	return x;
-}
+// Exemplo de inicialização de lista encadeada com memory leak
 
-void print_int(int x) {
-	if (x >= 10) {
-		print_int(x/10);
-	}
-	putchar(x%10 + '0');
-}
-
-void print_str(char* str) {
-	while (*str) {
-		putchar(*str);
-		str = str + 1;
-	}
-}
-
-struct Node {
-	int info;
-	struct Node* next;
+struct No
+{
+    int info;
+    struct No *prox;
 };
 
-struct Node* newNode(int info) {
-	struct Node* node;
-	node = malloc(sizeof(struct Node));
-	node->next = NULL;
-	node->info = info;
-	return node;
+struct No *add(struct No *lista, int info)
+{
+    if (!lista)
+    {
+        lista = malloc(sizeof(struct No));
+        lista->info = info;
+        lista->prox = NULL;
+    }
+    else
+    {
+        lista->prox = add(lista->prox, info);
+    }
+    return lista;
 }
 
-struct Node* stack(struct Node* node, int info) {
-	struct Node* head;
-	head = newNode(info);
-	head->next = node;
-	return head;
+struct No *delete(struct No *lista, int info)
+{
+    if (!lista)
+    {
+        return NULL;
+    }
+    if (lista->info == info)
+    {
+        struct No *prox;
+        prox = lista->prox;
+        // free(lista); // Descomente essa linha para visualizar a correção do memory leak
+        return prox;
+    }
+    lista->prox = delete(lista->prox, info);
+    return lista;
 }
 
-struct Node* append(struct Node* node, int info) {
-	if (!node) { return newNode(info); }
-	node->next = append(node->next, info);
-	return node;
-}
-
-struct Node* clear(struct Node* node) {
-	struct Node* tail;
-	if (node) {
-		tail = node->next;
-		free(node);
-		clear(tail);
-	}
-	return NULL;
-}
-
-struct Node* remove(struct Node* node, int info) {
-	if (!node) { return NULL; }
-	if (node->info == info) {
-		struct Node* aux;
-		aux = node->next;
-		free(node);
-		return aux;
-	}
-	node->next = remove(node->next, info);
-	return node;
-}
-
-void print(struct Node* node) {
-	print_str("[ ");
-	while (node) {
-		print_int(node->info);
-		putchar(' ');
-		node = node->next;
-	}
-	print_str("]\n");
-}
-
-int menu(struct Node* list) {
-	char c;
-	for (;;) {
-		c = getchar();
-		if (c == '-') { list = remove(list, read_int()); }
-		if (c == '<') { list = stack(list, read_int()); }
-		if (c == '>') { list = append(list, read_int()); }
-		if (c == 'c') { list = clear(list); }
-		if (c == 'p') { print(list); }
-		if (c == '*') { break; }
-	}
-}
-
-int main() {
-	struct Node* list;
-	list = NULL;
-	list = append(list, 2);
-	list = append(list, 4);
-	list = stack(list, 6);
-	menu(list);
+int main()
+{
+    struct No *lista;
+    lista = NULL;
+    lista = add(lista, 1);
+    lista = add(lista, 2);
+    lista = add(lista, 3);
+    lista = delete(lista, 2);
+    return 0;
 }

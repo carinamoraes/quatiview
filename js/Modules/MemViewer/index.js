@@ -1,7 +1,13 @@
 import Net from '../Net.js';
 import sortBinTree from './sorting/sortBinTree.js';
 import sortList from './sorting/sortList.js';
-import { bubbleSort, abortAnimation, isAnimationRunning, resetSortingState } from './sorting/sortArray.js';
+import {
+    bubbleSort,
+    abortAnimation,
+    isAnimationRunning,
+    resetSortingState,
+    isAnimationAborted,
+} from './sorting/sortArray.js';
 
 let canvas = null;
 let ctx = null;
@@ -805,6 +811,11 @@ export const runBubbleSortAll = async (onComplete = null) => {
  * Verifica se há animação de sorting em andamento
  */
 export const isSortingAnimationRunning = () => isAnimationRunning();
+
+/**
+ * Verifica se a animação de sorting foi interrompida
+ */
+export const isSortingAnimationAborted = () => isAnimationAborted();
 
 /**
  * Aborta a animação de sorting em andamento

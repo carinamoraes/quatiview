@@ -132,12 +132,18 @@ export const bubbleSort = async (instance, onComplete = null) => {
 
     try {
         for (let pass = 0; pass < length - 1 && !animationAborted; pass++) {
-            instance.sortingState.currentPass = pass;
+            // Verificar se sortingState ainda existe (pode ter sido resetado pelo abort)
+            if (instance.sortingState) {
+                instance.sortingState.currentPass = pass;
+            }
             let swapped = false;
 
             for (let i = 0; i < length - pass - 1 && !animationAborted; i++) {
                 // Destacar elementos sendo comparados
                 await highlightCompare(instance, i, i + 1);
+
+                // Verificar se a animação foi abortada durante o highlight
+                if (animationAborted) break;
 
                 // Verificar se precisa trocar
                 if (values[i] > values[i + 1]) {
@@ -146,26 +152,35 @@ export const bubbleSort = async (instance, onComplete = null) => {
                     swapped = true;
                 }
 
+                // Verificar se a animação foi abortada durante o swap
+                if (animationAborted) break;
+
                 clearHighlight(instance);
                 await sleep(delayBetweenSteps);
             }
 
-            // Marcar o último elemento desta passagem como ordenado
-            instance.sortingState.sorted.push(length - pass - 1);
+            // Marcar o último elemento desta passagem como ordenado (verificar se sortingState existe)
+            if (instance.sortingState && instance.sortingState.sorted) {
+                instance.sortingState.sorted.push(length - pass - 1);
+            }
 
             // Se não houve troca, o array já está ordenado
             if (!swapped) {
                 // Marcar todos os elementos restantes como ordenados
-                for (let k = 0; k < length - pass - 1; k++) {
-                    instance.sortingState.sorted.push(k);
+                if (instance.sortingState && instance.sortingState.sorted) {
+                    for (let k = 0; k < length - pass - 1; k++) {
+                        instance.sortingState.sorted.push(k);
+                    }
                 }
                 break;
             }
         }
 
-        // Animação concluída
-        instance.sortingState.active = false;
-        instance.sortingState.completed = true;
+        // Animação concluída (verificar se sortingState existe)
+        if (instance.sortingState && !animationAborted) {
+            instance.sortingState.active = false;
+            instance.sortingState.completed = true;
+        }
     } catch (error) {
         console.error('Erro durante bubble sort:', error);
     } finally {
@@ -188,6 +203,11 @@ export const abortAnimation = () => {
  * Verifica se uma animação está em andamento
  */
 export const isAnimationRunning = () => isAnimating;
+
+/**
+ * Verifica se uma animação foi interrompida
+ */
+export const isAnimationAborted = () => animationAborted;
 
 /**
  * Reseta o estado de sorting de uma instância
