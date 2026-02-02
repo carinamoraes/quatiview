@@ -178,6 +178,12 @@ export const bubbleSort = async (instance, onComplete = null) => {
 
         // Animação concluída (verificar se sortingState existe)
         if (instance.sortingState && !animationAborted) {
+            // Marcar todos os elementos como ordenados ao final
+            for (let i = 0; i < length; i++) {
+                if (!instance.sortingState.sorted.includes(i)) {
+                    instance.sortingState.sorted.push(i);
+                }
+            }
             instance.sortingState.active = false;
             instance.sortingState.completed = true;
         }
