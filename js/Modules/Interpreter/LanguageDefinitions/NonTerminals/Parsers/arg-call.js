@@ -1,6 +1,6 @@
 import NonTerminal from '../../../Model/NonTerminal.js';
 import { CompilationError } from '../../../../errors.js';
-import { isAssignable, isStruct } from './Support/Type.js';
+import { isAssignable, isStruct, isPtr } from './Support/Type.js';
 
 new NonTerminal({
     name: 'arg-call',
@@ -47,7 +47,19 @@ new NonTerminal({
             );
         }
         for (let i=0; i<args.length; ++i) {
-            if (!isAssignable(fn.args[i].type, args[i].type)) {
+            const paramType = fn.args[i].type;
+            const argType = args[i].type;
+            
+            // Verificar se está passando um ponteiro/array para um parâmetro não-ponteiro
+            if (isPtr(argType) && !isPtr(paramType)) {
+                const paramName = fn.args[i].name;
+                throw new CompilationError(
+                    `'${paramName}' declared as '${paramType}' but receives '${argType}'. Use '${paramType} *${paramName}' or '${paramType} ${paramName}[]'`,
+                    content[i].startsAt,
+                );
+            }
+            
+            if (!isAssignable(paramType, argType)) {
                 throw new CompilationError(
                     `incompatible type for argument ${i + 1} of '${fn.name}'`,
                     content[i].startsAt,
