@@ -123,7 +123,7 @@ const handleEnd = () => {
     button.pause.addClass('disabled');
     button.next.addClass('disabled');
     // Habilitar botão de bubble sort se houver arrays
-    enableBubbleSortButton();
+    // enableBubbleSortButton();
 };
 
 const handleStart = () => {
@@ -135,7 +135,7 @@ const handleStart = () => {
     button.next.removeClass('disabled');
     Net.editor.lock();
     // Desabilitar botão de bubble sort durante execução
-    disableBubbleSortButton();
+    // disableBubbleSortButton();
 };
 
 const run = async () => {
@@ -200,45 +200,45 @@ const binaryTree = () => {
 };
 
 const arrayExample = () => {
-    getCodeSample('../../samples/bubble_sort.c');
+    getCodeSample('../../samples/array.c');
 };
 
-const bubbleSortArray = async () => {
-    const arrayInstances = Net.memViewer.getArrayInstances();
-    if (arrayInstances.length === 0) {
-        Net.terminal.writeln('\nNenhum array encontrado para ordenar');
-        return;
-    }
+// const bubbleSortArray = async () => {
+//     const arrayInstances = Net.memViewer.getArrayInstances();
+//     if (arrayInstances.length === 0) {
+//         Net.terminal.writeln('\nNenhum array encontrado para ordenar');
+//         return;
+//     }
 
-    button['bubble-sort'].addClass('disabled');
-    Net.editor.lock();
-    button.build.addClass('disabled');
-    button.stop.removeClass('disabled');
-    Net.terminal.writeln('\nIniciando Bubble Sort...');
+//     button['bubble-sort'].addClass('disabled');
+//     Net.editor.lock();
+//     button.build.addClass('disabled');
+//     button.stop.removeClass('disabled');
+//     Net.terminal.writeln('\nIniciando Bubble Sort...');
 
-    await Net.memViewer.runBubbleSortAll(() => {
-        if (Net.memViewer.isSortingAnimationAborted()) {
-            Net.terminal.writeln('Bubble Sort interrompido!');
-        } else {
-            Net.terminal.writeln('Bubble Sort concluído!');
-        }
-        enableBubbleSortButton();
-        button.build.removeClass('disabled');
-        button.stop.addClass('disabled');
-        Net.editor.unlock();
-    });
-};
+//     await Net.memViewer.runBubbleSortAll(() => {
+//         if (Net.memViewer.isSortingAnimationAborted()) {
+//             Net.terminal.writeln('Bubble Sort interrompido!');
+//         } else {
+//             Net.terminal.writeln('Bubble Sort concluído!');
+//         }
+//         enableBubbleSortButton();
+//         button.build.removeClass('disabled');
+//         button.stop.addClass('disabled');
+//         Net.editor.unlock();
+//     });
+// };
 
-const enableBubbleSortButton = () => {
-    const arrayInstances = Net.memViewer.getArrayInstances();
-    if (arrayInstances.length > 0 && !Net.memViewer.isSortingAnimationRunning()) {
-        button['bubble-sort'].removeClass('disabled');
-    }
-};
+// const enableBubbleSortButton = () => {
+//     const arrayInstances = Net.memViewer.getArrayInstances();
+//     if (arrayInstances.length > 0 && !Net.memViewer.isSortingAnimationRunning()) {
+//         button['bubble-sort'].removeClass('disabled');
+//     }
+// };
 
-const disableBubbleSortButton = () => {
-    button['bubble-sort'].addClass('disabled');
-};
+// const disableBubbleSortButton = () => {
+//     button['bubble-sort'].addClass('disabled');
+// };
 
 const bindButton = (name, action) => {
     button[name].on('click', function () {
@@ -285,7 +285,7 @@ export const init = () => {
     bindButton('linked-list-example', linkedList);
     bindButton('bin-tree-example', binaryTree);
     bindButton('array-example', arrayExample);
-    bindButton('bubble-sort', bubbleSortArray);
+    // bindButton('bubble-sort', bubbleSortArray);
     showWelcomeModal();
     bindWelcomeModal();
     $(window).on('keydown', (e) => {
