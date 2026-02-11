@@ -2,6 +2,7 @@ import Net from '../Net.js';
 import sortBinTree from './sorting/sortBinTree.js';
 import sortList from './sorting/sortList.js';
 import { setWriteCallback } from '../Memory/index.js';
+import { isPaused, getIntervalMs } from '../Panel/index.js';
 
 let canvas = null;
 let ctx = null;
@@ -55,11 +56,19 @@ const color = {
 
 // Rastreamento de modificações em arrays para detecção de swaps
 let modifiedCells = {}; // { addr: { index, timestamp, value } }
-const modifiedHighlightDuration = 400; // ms
 
 // Sistema de detecção de swap
 let pendingSwaps = {}; // { instanceAddr: { reads: [], writes: [] } }
 const swapDetectionWindow = 50; // ms para detectar um swap
+
+/**
+ * Obtém a duração do destaque baseada na velocidade do Panel
+ * Retorna um valor mínimo de 200ms para garantir visibilidade
+ */
+const getHighlightDuration = () => {
+    const interval = getIntervalMs();
+    return Math.max(200, interval);
+};
 
 let bitTic = 0;
 let organizeFlag = false;
@@ -588,8 +597,15 @@ class ArrayTemplate {
         const cellAddr = addr + index * elementSize;
         const modInfo = modifiedCells[cellAddr];
         if (modInfo) {
+            // Se está pausado, manter o destaque indefinidamente
+            if (isPaused()) {
+                return color.modified;
+            }
+            
+            // Caso contrário, usar a duração baseada na velocidade
             const elapsed = Date.now() - modInfo.timestamp;
-            if (elapsed < modifiedHighlightDuration) {
+            const highlightDuration = getHighlightDuration();
+            if (elapsed < highlightDuration) {
                 return color.modified;
             } else {
                 delete modifiedCells[cellAddr];

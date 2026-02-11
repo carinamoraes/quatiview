@@ -4,7 +4,13 @@ import Net from '../Net.js';
 
 let paused = true;
 let running = false;
+let intervalMs = 1000;
 const button = {};
+
+// Funções exportadas para outros módulos
+export const isPaused = () => paused;
+export const isRunning = () => running;
+export const getIntervalMs = () => intervalMs;
 
 const bindInputFile = (inputFile) => {
     inputFile.on('change', function () {
@@ -64,6 +70,8 @@ const reportCompilationError = (source, error) => {
 };
 
 const step = async () => {
+    // Limpar destaques de células modificadas antes de avançar
+    Net.memViewer.clearModifiedCells();
     Net.execution.handleStep();
 };
 
@@ -79,7 +87,6 @@ const pause = async () => {
 };
 
 let lastStep = null;
-let intervalMs = 1000;
 let intervalCode = null;
 const startLoop = () => {
     if (intervalCode !== null) {
@@ -135,6 +142,8 @@ const run = async () => {
     if (!paused) {
         return;
     }
+    // Limpar destaques de células modificadas ao continuar
+    Net.memViewer.clearModifiedCells();
     paused = false;
     button.pause.removeClass('disabled');
     button.run.addClass('disabled');
