@@ -1,5 +1,4 @@
 // Exemplo de inicialização de array
-// Após executar este código, clique no botão "Bubble Sort" para ver a ordenação
 
 int main()
 {

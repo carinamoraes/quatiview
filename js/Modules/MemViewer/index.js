@@ -1,13 +1,7 @@
 import Net from '../Net.js';
 import sortBinTree from './sorting/sortBinTree.js';
 import sortList from './sorting/sortList.js';
-import {
-    bubbleSort,
-    abortAnimation,
-    isAnimationRunning,
-    resetSortingState,
-    isAnimationAborted,
-} from './sorting/sortArray.js';
+import { setWriteCallback } from '../Memory/index.js';
 
 let canvas = null;
 let ctx = null;
@@ -39,7 +33,7 @@ const color = {
     ptrLine: '#fff',
     addr: '#ccc',
     instance: '#aaa',
-    // Cores para animação de bubble sort
+    // Cores para animação de ordenação
     comparing: {
         bg: '#f90',
         text: '#fff',
@@ -52,7 +46,20 @@ const color = {
         bg: '#e33',
         text: '#fff',
     },
+    // Cor para destaque de modificação (código do usuário)
+    modified: {
+        bg: '#e33',
+        text: '#fff',
+    },
 };
+
+// Rastreamento de modificações em arrays para detecção de swaps
+let modifiedCells = {}; // { addr: { index, timestamp, value } }
+const modifiedHighlightDuration = 400; // ms
+
+// Sistema de detecção de swap
+let pendingSwaps = {}; // { instanceAddr: { reads: [], writes: [] } }
+const swapDetectionWindow = 50; // ms para detectar um swap
 
 let bitTic = 0;
 let organizeFlag = false;
@@ -75,7 +82,7 @@ const runAnimations = () => {
     const now = Date.now();
     const ongoing = [];
     for (let animation of animations) {
-        const { time, start, end, it } = animation;
+        const { time, it } = animation;
         const dt = now - time;
         const x = Math.min(1, dt / animationDuration);
         const y = (1 - Math.cos(x * Math.PI)) / 2;
@@ -482,6 +489,11 @@ export const init = () => {
     bindCanvas();
     $(window).on('resize', resize);
 
+    // Registrar callback para notificação de escritas na memória
+    setWriteCallback((addr, value) => {
+        notifyMemoryWrite(addr, value);
+    });
+
     setTimeout(() => {
         resize();
         frame();
@@ -495,6 +507,7 @@ export const clear = () => {
     }
     instances.length = 0;
     pointers.length = 0;
+    modifiedCells = {}; // Limpar rastreamento de modificações
 };
 
 export const addStruct = (name) => {
@@ -549,7 +562,8 @@ class ArrayTemplate {
      * Determina a cor de um elemento baseado no estado da animação
      */
     getElementColor(instance, index, elementType) {
-        const { compareHighlight, swapAnimation, sortingState } = instance;
+        const { compareHighlight, swapAnimation, sortingState, addr } = instance;
+        const { elementSize } = this;
 
         // Elemento sendo trocado (animação de swap ativa)
         if (swapAnimation && swapAnimation.active) {
@@ -568,6 +582,18 @@ class ArrayTemplate {
         // Elemento já ordenado
         if (sortingState && sortingState.sorted && sortingState.sorted.includes(index)) {
             return color.sorted;
+        }
+
+        // Verificar se célula foi modificada recentemente (código do usuário)
+        const cellAddr = addr + index * elementSize;
+        const modInfo = modifiedCells[cellAddr];
+        if (modInfo) {
+            const elapsed = Date.now() - modInfo.timestamp;
+            if (elapsed < modifiedHighlightDuration) {
+                return color.modified;
+            } else {
+                delete modifiedCells[cellAddr];
+            }
         }
 
         // Cor padrão
@@ -781,51 +807,100 @@ export const getArrayInstances = () => {
 };
 
 /**
- * Executa bubble sort em uma instância de array específica
- * @param {ArrayInstance} instance - Instância do array
- * @param {Function} onComplete - Callback opcional chamado ao finalizar
+ * Notifica que um endereço de memória foi modificado
+ * Usado para destacar visualmente as modificações em arrays
+ * @param {number} addr - Endereço que foi modificado
+ * @param {number} value - Novo valor escrito
  */
-export const runBubbleSort = async (instance, onComplete = null) => {
-    if (!(instance.template instanceof ArrayTemplate)) {
-        console.warn('A instância fornecida não é um array');
-        return;
-    }
-    await bubbleSort(instance, onComplete);
-};
-
-/**
- * Executa bubble sort em todos os arrays
- * @param {Function} onComplete - Callback opcional chamado ao finalizar
- */
-export const runBubbleSortAll = async (onComplete = null) => {
-    const arrayInstances = getArrayInstances();
-    for (const instance of arrayInstances) {
-        await bubbleSort(instance);
-    }
-    if (onComplete) {
-        onComplete();
-    }
-};
-
-/**
- * Verifica se há animação de sorting em andamento
- */
-export const isSortingAnimationRunning = () => isAnimationRunning();
-
-/**
- * Verifica se a animação de sorting foi interrompida
- */
-export const isSortingAnimationAborted = () => isAnimationAborted();
-
-/**
- * Aborta a animação de sorting em andamento
- */
-export const abortSortingAnimation = () => {
-    abortAnimation();
-    // Limpar estado de todas as instâncias
+export const notifyMemoryWrite = (addr, value) => {
+    // Verificar se este endereço pertence a alguma instância de array
     for (const instance of instances) {
-        if (instance.template instanceof ArrayTemplate) {
-            resetSortingState(instance);
+        if (!(instance.template instanceof ArrayTemplate)) continue;
+        
+        const { addr: baseAddr, length, template } = instance;
+        const { elementSize } = template;
+        const endAddr = baseAddr + length * elementSize;
+        
+        // Verificar se o endereço está dentro deste array
+        if (addr >= baseAddr && addr < endAddr) {
+            const index = Math.floor((addr - baseAddr) / elementSize);
+            const cellAddr = baseAddr + index * elementSize;
+            
+            const now = Date.now();
+            
+            // Verificar se há um swap pendente para detectar
+            const pending = pendingSwaps[baseAddr] || { writes: [] };
+            pendingSwaps[baseAddr] = pending;
+            
+            // Adicionar esta escrita à lista
+            pending.writes.push({
+                index,
+                cellAddr,
+                value,
+                timestamp: now,
+            });
+            
+            // Limpar escritas antigas
+            pending.writes = pending.writes.filter(w => now - w.timestamp < swapDetectionWindow);
+            
+            // Detectar swap: duas escritas em posições diferentes com valores trocados
+            if (pending.writes.length >= 2) {
+                const recent = pending.writes.slice(-2);
+                const [w1, w2] = recent;
+                
+                if (w1.index !== w2.index) {
+                    // Verificar se os valores foram trocados (swap)
+                    const prevValue1 = instance.values[w2.index];
+                    const prevValue2 = instance.values[w1.index];
+                    
+                    if (w1.value === prevValue1 || w2.value === prevValue2) {
+                        // Detectado um swap! Ativar animação visual
+                        instance.swapAnimation = {
+                            active: true,
+                            indexA: Math.min(w1.index, w2.index),
+                            indexB: Math.max(w1.index, w2.index),
+                            progress: 0,
+                        };
+                        
+                        // Animar o swap
+                        const startTime = Date.now();
+                        const animateSwap = () => {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(1, elapsed / 300);
+                            const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                            
+                            if (instance.swapAnimation) {
+                                instance.swapAnimation.progress = eased;
+                                
+                                if (progress < 1) {
+                                    requestAnimationFrame(animateSwap);
+                                } else {
+                                    instance.swapAnimation = null;
+                                }
+                            }
+                        };
+                        requestAnimationFrame(animateSwap);
+                        
+                        // Limpar escritas pendentes após detectar swap
+                        pending.writes = [];
+                    }
+                }
+            }
+            
+            // Registrar modificação para highlight
+            modifiedCells[cellAddr] = {
+                index,
+                timestamp: now,
+                value,
+            };
+            break;
         }
     }
+};
+
+/**
+ * Limpa o rastreamento de células modificadas
+ */
+export const clearModifiedCells = () => {
+    modifiedCells = {};
 };

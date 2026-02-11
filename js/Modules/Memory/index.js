@@ -1,11 +1,18 @@
 import Chunk from './Chunk.js';
 
 import {
-	InvalidAddress,
-	UnallocatedMemoryAccess,
-	UninitializedMemoryAccess,
-	FreeingANonAllocationAddress,
+    InvalidAddress,
+    UnallocatedMemoryAccess,
+    UninitializedMemoryAccess,
+    FreeingANonAllocationAddress,
 } from '../errors.js';
+
+// Callback para notificar escritas na memória (usado pelo MemViewer)
+let onWriteCallback = null;
+
+export const setWriteCallback = (callback) => {
+    onWriteCallback = callback;
+};
 
 const UNINITIALIZED_BYTE = Symbol('UNINITIALIZED_BYTE');
 const DETERMINISTIC = false;
@@ -89,28 +96,31 @@ export const read = (addr) => {
 	return byte;
 };
 
-export const write = (addr, byte) => {
-	validateAddr(addr);
-	if (bytes[addr] === undefined) {
-		throw new UnallocatedMemoryAccess(addr);
-	}
-	bytes[addr] = byte;
+export const write = (addr, byte, skipNotify = false) => {
+    validateAddr(addr);
+    if (bytes[addr] === undefined) {
+        throw new UnallocatedMemoryAccess(addr);
+    }
+    bytes[addr] = byte;
+    // Notificar callback de escrita (para visualização)
+    if (onWriteCallback && !skipNotify) {
+        onWriteCallback(addr, byte);
+    }
 };
 
 export const readWord = (addr) => {
-	return (
-		read(addr)
-		| (read(addr + 1) << 8)
-		| (read(addr + 2) << 16)
-		| (read(addr + 3) << 24)
-	);
+    return read(addr) | (read(addr + 1) << 8) | (read(addr + 2) << 16) | (read(addr + 3) << 24);
 };
 
 export const writeWord = (addr, word) => {
-	write(addr, word & 255);
-	write(addr + 1, (word >> 8) & 255);
-	write(addr + 2, (word >> 16) & 255);
-	write(addr + 3, (word >> 24) & 255);
+    write(addr, word & 255, true);
+    write(addr + 1, (word >> 8) & 255, true);
+    write(addr + 2, (word >> 16) & 255, true);
+    write(addr + 3, (word >> 24) & 255, true);
+    // Notificar callback de escrita uma vez para a palavra inteira
+    if (onWriteCallback) {
+        onWriteCallback(addr, word);
+    }
 };
 
 export const readWordSafe = (addr, word) => {
