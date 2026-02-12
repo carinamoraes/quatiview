@@ -114,6 +114,9 @@ const stop = () => {
         Net.execution.abort();
     }
     Net.terminal.writeln('\nExecution aborted');
+    button.array.removeClass('disabled');
+    button.linked_list.removeClass('disabled');
+    button.bin_tree.removeClass('disabled');
     handleEnd();
 };
 
@@ -155,6 +158,9 @@ const build = async () => {
     Net.terminal.reset();
     const source = Net.editor.getText();
     try {
+        button.array.addClass('disabled');
+        button.linked_list.addClass('disabled');
+        button.bin_tree.addClass('disabled');
         handleStart();
         await Net.interpreter.run(source);
         handleEnd();
@@ -247,9 +253,9 @@ export const init = () => {
     bindButton('next', step);
     bindButton('stop', stop);
     bindSpeedInput();
-    bindButton('linked-list-example', linkedList);
-    bindButton('bin-tree-example', binaryTree);
-    bindButton('array-example', arrayExample);
+    bindButton('linked_list', linkedList);
+    bindButton('bin_tree', binaryTree);
+    bindButton('array', arrayExample);
     showWelcomeModal();
     bindWelcomeModal();
     $(window).on('keydown', (e) => {

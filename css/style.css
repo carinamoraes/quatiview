@@ -56,19 +56,20 @@ body {
 	margin-bottom: 2px;
 }
 #control-panel .code-examples {
-    color: #fff;
-    display: flex;
-    flex-direction: row;
-    gap: var(--spacing);
     float: right;
-	margin-top: 8px;
 	margin-right: 10px;
 }
-#control-panel .example-button {
+#control-panel .code-examples .panel-button {
+	color: #fff;
+	background-color: #444;
+	border: 2px solid #4f4f4f;
+	border-radius: 6px;
+	padding: 6px 12px;
+	margin-top: 5px;
+}
+#control-panel .code-examples .panel-button:hover {
 	background-color: #555;
-    border-radius: 4px;
-    padding: 5px;
-    cursor: pointer;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 #editor-section {
 	position: absolute;
