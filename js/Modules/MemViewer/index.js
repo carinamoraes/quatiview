@@ -64,7 +64,16 @@ let modifiedCells = {}; // { addr: { index, timestamp, value } }
 
 // Sistema de detecção de swap
 let pendingSwaps = {}; // { instanceAddr: { reads: [], writes: [] } }
-const swapDetectionWindow = 50; // ms para detectar um swap
+
+/**
+ * Obtém a janela de tempo para detecção de swap baseada na velocidade
+ */
+const getSwapDetectionWindow = () => {
+    const interval = getIntervalMs();
+    // Janela é o dobro do intervalo para garantir que capture as duas escritas do swap
+    // Mínimo de 100ms para velocidades altas
+    return Math.max(100, interval * 2);
+};
 
 // Rastreamento de elementos destacados por instância de array
 // { instanceAddr: { index, color } }
@@ -879,7 +888,7 @@ export const notifyMemoryWrite = (addr, value) => {
             });
             
             // Limpar escritas antigas
-            pending.writes = pending.writes.filter(w => now - w.timestamp < swapDetectionWindow);
+            pending.writes = pending.writes.filter(w => now - w.timestamp < getSwapDetectionWindow());
             
             // Detectar swap: duas escritas em posições diferentes com valores trocados
             if (pending.writes.length >= 2) {
@@ -900,11 +909,12 @@ export const notifyMemoryWrite = (addr, value) => {
                             progress: 0,
                         };
                         
-                        // Animar o swap
+                        // Animar o swap - duração baseada na velocidade
                         const startTime = Date.now();
+                        const swapDuration = Math.max(200, Math.min(500, getIntervalMs() * 0.8));
                         const animateSwap = () => {
                             const elapsed = Date.now() - startTime;
-                            const progress = Math.min(1, elapsed / 300);
+                            const progress = Math.min(1, elapsed / swapDuration);
                             const eased = progress < 0.5 ? 2 * progress * progress : 1 - Math.pow(-2 * progress + 2, 2) / 2;
                             
                             if (instance.swapAnimation) {
