@@ -31,6 +31,8 @@ import forLoop from './Instructions/for.js';
 import whileLoop from './Instructions/while.js';
 import neg from './Instructions/neg.js';
 import arrayAssign from './Instructions/array-assign.js';
+import highlightIndex from './Instructions/highlight-index.js';
+import clearHighlight from './Instructions/clear-highlight.js';
 
 const map = {
     call: call,
@@ -66,6 +68,8 @@ const map = {
     sub: sub,
     neg: neg,
     'array-assign': arrayAssign,
+    'highlight_index': highlightIndex,
+    'clear_highlight': clearHighlight,
 };
 
 export default async (obj) => {

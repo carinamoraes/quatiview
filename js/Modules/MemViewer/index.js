@@ -52,6 +52,11 @@ const color = {
         bg: '#e33',
         text: '#fff',
     },
+    // Cor padrão para elemento destacado de um array
+    highlight_array_element: {
+        bg: 'yellow',
+        text: 'black',
+    },
 };
 
 // Rastreamento de modificações em arrays para detecção de swaps
@@ -60,6 +65,10 @@ let modifiedCells = {}; // { addr: { index, timestamp, value } }
 // Sistema de detecção de swap
 let pendingSwaps = {}; // { instanceAddr: { reads: [], writes: [] } }
 const swapDetectionWindow = 50; // ms para detectar um swap
+
+// Rastreamento de elementos destacados por instância de array
+// { instanceAddr: { index, color } }
+let highlightArrayElement = {};
 
 /**
  * Obtém a duração do destaque baseada na velocidade do Panel
@@ -517,6 +526,7 @@ export const clear = () => {
     instances.length = 0;
     pointers.length = 0;
     modifiedCells = {}; // Limpar rastreamento de modificações
+    highlightArrayElement = {}; // Limpar rastreamento de elementos destacados
 };
 
 export const addStruct = (name) => {
@@ -586,6 +596,18 @@ class ArrayTemplate {
             if (index === compareHighlight.indexA || index === compareHighlight.indexB) {
                 return color.comparing;
             }
+        }
+
+        // Verificar se é o elemento destacado definido pelo usuário
+        const highlightArrayElementInfo = highlightArrayElement[addr];
+        if (highlightArrayElementInfo && highlightArrayElementInfo.index === index) {
+            if (highlightArrayElementInfo.color) {
+                return {
+                    bg: highlightArrayElementInfo.color,
+                    text: 'black',
+                }
+            }
+            return color.highlight_array_element;
         }
 
         // Elemento já ordenado
@@ -919,4 +941,28 @@ export const notifyMemoryWrite = (addr, value) => {
  */
 export const clearModifiedCells = () => {
     modifiedCells = {};
+};
+
+/**
+ * Define o elemento de um array para destacar na visualização
+ */
+export const setHighlightArrayElement = (arrayAddr, index, colorHex) => {
+    highlightArrayElement[arrayAddr] = {
+        index: index,
+        color: colorHex
+    };
+};
+
+/**
+ * Remove o destaque do elemento de um array
+ */
+export const clearHighlightArrayElement = (arrayAddr) => {
+    delete highlightArrayElement[arrayAddr];
+};
+
+/**
+ * Limpa todos os elementos destacados de todos os arrays
+ */
+export const clearAllHighlightArrayElements = () => {
+    highlightArrayElement = {};
 };
