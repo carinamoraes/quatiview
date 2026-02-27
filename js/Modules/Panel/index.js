@@ -129,6 +129,9 @@ const handleEnd = () => {
     button.run.addClass('disabled');
     button.pause.addClass('disabled');
     button.next.addClass('disabled');
+    button.array.removeClass('disabled');
+    button.linked_list.removeClass('disabled');
+    button.bin_tree.removeClass('disabled');
 };
 
 const handleStart = () => {
