@@ -203,15 +203,15 @@ const getCodeSample = (path) => {
 };
 
 const linkedList = () => {
-    getCodeSample('../../samples/list.c');
+    getCodeSample('samples/list.c');
 };
 
 const binaryTree = () => {
-    getCodeSample('../../samples/bin_tree.c');
+    getCodeSample('samples/bin_tree.c');
 };
 
 const arrayExample = () => {
-    getCodeSample('../../samples/array.c');
+    getCodeSample('samples/array.c');
 };
 
 const bindButton = (name, action) => {
